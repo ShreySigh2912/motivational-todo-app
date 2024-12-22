@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar } from 'lucide-react';
+import { Plus, Calendar, Check } from 'lucide-react';
 
 const TodoApp = () => {
   const [tasks, setTasks] = useState(() => {
@@ -12,6 +12,16 @@ const TodoApp = () => {
     description: '', 
     deadline: new Date().toISOString().slice(0, 16)
   });
+  
+  const [showQuote, setShowQuote] = useState(false);
+  const [currentQuote, setCurrentQuote] = useState('');
+
+  const quotes = [
+    "Great job! Success is not final, failure is not fatal: it is the courage to continue that counts.",
+    "Well done! The only way to do great work is to love what you do.",
+    "Excellent! Believe you can and you're halfway there.",
+    "Amazing work! Your positive action combined with positive thinking results in success."
+  ];
 
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -35,6 +45,22 @@ const TodoApp = () => {
       description: '', 
       deadline: new Date().toISOString().slice(0, 16)
     });
+  };
+
+  const completeTask = (taskId) => {
+    setTasks(tasks.map(task => {
+      if (task.id === taskId) {
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        setCurrentQuote(randomQuote);
+        setShowQuote(true);
+        return { 
+          ...task, 
+          completed: true, 
+          completedDate: new Date().toISOString() 
+        };
+      }
+      return task;
+    }));
   };
 
   return (
@@ -76,8 +102,25 @@ const TodoApp = () => {
 
       <div className="space-y-4">
         {tasks.map(task => (
-          <div key={task.id} className="p-4 rounded-lg shadow bg-white">
-            <h3 className="text-xl">{task.title}</h3>
+          <div 
+            key={task.id} 
+            className={`p-4 rounded-lg shadow ${
+              task.completed ? 'bg-green-50' : 'bg-white'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <h3 className={`text-xl ${task.completed ? 'line-through' : ''}`}>
+                {task.title}
+              </h3>
+              {!task.completed && (
+                <button
+                  onClick={() => completeTask(task.id)}
+                  className="bg-green-500 text-white p-2 rounded hover:bg-green-600"
+                >
+                  <Check size={20} />
+                </button>
+              )}
+            </div>
             <p className="text-gray-600 mt-2">{task.description}</p>
             <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
               <Calendar size={16} />
@@ -86,6 +129,21 @@ const TodoApp = () => {
           </div>
         ))}
       </div>
+
+      {showQuote && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white p-6 rounded-lg max-w-md">
+            <h2 className="text-xl font-bold mb-4">🎉 Task Completed!</h2>
+            <p className="text-gray-700">{currentQuote}</p>
+            <button
+              onClick={() => setShowQuote(false)}
+              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
